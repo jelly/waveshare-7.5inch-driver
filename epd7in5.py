@@ -16,16 +16,25 @@
 # LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
 
+import time
 
-import epdconfig
 from PIL import Image
 import RPi.GPIO as GPIO
+import spidev
+
+
+# Pin definition
+RST_PIN         = 17
+DC_PIN          = 25
+CS_PIN          = 8
+BUSY_PIN        = 24
+
 
 # Display resolution
 EPD_WIDTH       = 640
 EPD_HEIGHT      = 384
+
 
 # EPD7IN5 commands
 PANEL_SETTING                               = 0x00
@@ -66,37 +75,59 @@ AUTO_MEASUREMENT_VCOM                       = 0x80
 READ_VCOM_VALUE                             = 0x81
 VCM_DC_SETTING                              = 0x82
 
+
+# SPI device, bus = 0, device = 0
+SPI = spidev.SpiDev(0, 0)
+
+
 class EPD:
     def __init__(self):
-        self.reset_pin = epdconfig.RST_PIN
-        self.dc_pin = epdconfig.DC_PIN
-        self.busy_pin = epdconfig.BUSY_PIN
+        self.reset_pin = RST_PIN
+        self.dc_pin = DC_PIN
+        self.busy_pin = BUSY_PIN
         self.width = EPD_WIDTH
         self.height = EPD_HEIGHT
 
+    def module_init(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        GPIO.setup(RST_PIN, GPIO.OUT)
+        GPIO.setup(DC_PIN, GPIO.OUT)
+        GPIO.setup(CS_PIN, GPIO.OUT)
+        GPIO.setup(BUSY_PIN, GPIO.IN)
+        SPI.max_speed_hz = 10000000
+        SPI.mode = 0b00
+        return 0
+
+    def digital_write(self, pin, value):
+        GPIO.output(pin, value)
+
+    def delay_ms(self, delaytime):
+        time.sleep(delaytime / 1000.0)
+
     # Hardware reset
     def reset(self):
-        epdconfig.digital_write(self.reset_pin, GPIO.HIGH)
-        epdconfig.delay_ms(200)
-        epdconfig.digital_write(self.reset_pin, GPIO.LOW)         # module reset
-        epdconfig.delay_ms(200)
-        epdconfig.digital_write(self.reset_pin, GPIO.HIGH)
-        epdconfig.delay_ms(200)
+        self.digital_write(self.reset_pin, GPIO.HIGH)
+        self.delay_ms(200)
+        self.digital_write(self.reset_pin, GPIO.LOW)         # module reset
+        self.delay_ms(200)
+        self.digital_write(self.reset_pin, GPIO.HIGH)
+        self.delay_ms(200)
 
     def send_command(self, command):
-        epdconfig.digital_write(self.dc_pin, GPIO.LOW)
-        epdconfig.spi_writebyte([command])
+        self.digital_write(self.dc_pin, GPIO.LOW)
+        SPI.writebytes([command])
 
     def send_data(self, data):
-        epdconfig.digital_write(self.dc_pin, GPIO.HIGH)
-        epdconfig.spi_writebyte([data])
+        self.digital_write(self.dc_pin, GPIO.HIGH)
+        SPI.writebytes([data])
 
     def wait_until_idle(self):
-        while(epdconfig.digital_read(self.busy_pin) == 0):      # 0: idle, 1: busy
-            epdconfig.delay_ms(100)
+        while(GPIO.input(self.busy_pin) == 0):      # 0: idle, 1: busy
+            self.delay_ms(100)
 
     def init(self):
-        if (epdconfig.module_init() != 0):
+        if (self.module_init() != 0):
             return -1
         # EPD hardware init start
         self.reset()
@@ -157,18 +188,18 @@ class EPD:
 
     def display(self, data):
         self.send_command(DATA_START_TRANSMISSION_1)
-        epdconfig.digital_write(self.dc_pin, GPIO.HIGH)
+        self.digital_write(self.dc_pin, GPIO.HIGH)
 
-        epdconfig.SPI.writebytes2(data)
+        SPI.writebytes2(data)
         self.send_command(DISPLAY_REFRESH)
-        epdconfig.delay_ms(100)
+        self.delay_ms(100)
         self.wait_until_idle()
 
     def clear(self):
         self.send_command(DATA_START_TRANSMISSION_1)
-        epdconfig.digital_write(self.dc_pin, GPIO.HIGH)
+        self.digital_write(self.dc_pin, GPIO.HIGH)
         data = [0x33 for _ in range(0, self.width // 2 * self.height)]
-        epdconfig.SPI.writebytes2(data)
+        SPI.writebytes2(data)
         self.send_command(DISPLAY_REFRESH)
         self.wait_until_idle()
 
