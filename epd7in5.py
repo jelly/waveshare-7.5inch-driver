@@ -163,30 +163,6 @@ class EPD:
         # EPD hardware init end
         return 0
 
-    def getbuffer_old(self, image):
-        buf = [0x00] * (self.width * self.height // 4)
-        image_monocolor = image.convert('1')
-        imwidth, imheight = image_monocolor.size
-        pixels = image_monocolor.load()
-        if(imwidth == self.width and imheight == self.height):
-            for y in range(imheight):
-                for x in range(imwidth):
-                    # Set the bits for the column of pixels at the current position.
-                    if pixels[x, y] < 64:           # black
-                        buf[(x + y * self.width) // 4] &= ~(0xC0 >> (x % 4 * 2))
-                    else:                           # white
-                        buf[(x + y * self.width) // 4] |= 0xC0 >> (x % 4 * 2)
-        elif(imwidth == self.height and imheight == self.width):
-            for y in range(imheight):
-                for x in range(imwidth):
-                    newx = y
-                    newy = self.height - x - 1
-                    if pixels[x, y] < 64:           # black
-                        buf[(newx + newy*self.width) // 4] &= ~(0xC0 >> (y % 4 * 2))
-                    else:                           # white
-                        buf[(newx + newy*self.width) // 4] |= 0xC0 >> (y % 4 * 2)
-        return buf
-
     def getbuffer(self, image):
         buf = [0x00] * (self.width // 2 * self.height)
         image_monocolor = image.convert('1')
@@ -212,37 +188,6 @@ class EPD:
         self.send_command(DATA_START_TRANSMISSION_1)
         epdconfig.digital_write(self.dc_pin, GPIO.HIGH)
 
-        epdconfig.SPI.writebytes2(data)
-        self.send_command(DISPLAY_REFRESH)
-        epdconfig.delay_ms(100)
-        self.wait_until_idle()
-
-    def display_old(self, image):
-        self.send_command(DATA_START_TRANSMISSION_1)
-        epdconfig.digital_write(self.dc_pin, GPIO.HIGH)
-        data = []
-        for i in range(0, self.width // 4 * self.height):
-            temp1 = image[i]
-            j = 0
-            while (j < 4):
-                if ((temp1 & 0xC0) == 0xC0):
-                    temp2 = 0x03
-                elif ((temp1 & 0xC0) == 0x00):
-                    temp2 = 0x00
-                else:
-                    temp2 = 0x04
-                temp2 = (temp2 << 4) & 0xFF
-                temp1 = (temp1 << 2) & 0xFF
-                j += 1
-                if((temp1 & 0xC0) == 0xC0):
-                    temp2 |= 0x03
-                elif ((temp1 & 0xC0) == 0x00):
-                    temp2 |= 0x00
-                else:
-                    temp2 |= 0x04
-                temp1 = (temp1 << 2) & 0xFF
-                data.append(temp2)
-                j += 1
         epdconfig.SPI.writebytes2(data)
         self.send_command(DISPLAY_REFRESH)
         epdconfig.delay_ms(100)
