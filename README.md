@@ -1,6 +1,12 @@
 # waveshare-7.5inch-driver
-Waveshare 7.5inch E-Ink Python driver
+[Waveshare 7.5inch](https://www.waveshare.com/7.5inch-e-paper.htm) E-Ink Python driver.
 
+## Dependencies
+
+* python3
+* python3-pillow
+* python3-rpi.gpio
+* python3-spidev (v3.3)
 
 ## License
 
