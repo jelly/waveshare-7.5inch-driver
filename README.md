@@ -6,7 +6,7 @@
 * python3
 * python3-pillow
 * python3-rpi.gpio
-* python3-spidev (v3.3)
+* python3-spidev (v3.3, newer then raspbian)
 
 ## Usage
 
