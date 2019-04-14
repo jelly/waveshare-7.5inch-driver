@@ -1,32 +1,3 @@
-# //*****************************************************************************
-# * | File        :	  epd7in5.py
-# * | Author      :   Waveshare team
-# * | Function    :   Electronic paper driver
-# * | Info        :
-# *----------------
-# * |	This version:   V3.0
-# * | Date        :   2018-11-12
-# * | Info        :   python2 demo
-# * 1.Remove:
-#   digital_write(self, pin, value)
-#   digital_read(self, pin)
-#   delay_ms(self, delaytime)
-#   set_lut(self, lut)
-#   self.lut = self.lut_full_update
-# * 2.Change:
-#   display_frame -> TurnOnDisplay
-#   set_memory_area -> SetWindow
-#   set_memory_pointer -> SetCursor
-#   get_frame_buffer -> getbuffer
-#   set_frame_memory -> display
-# * 3.How to use
-#   epd = epd2in7.EPD()
-#   epd.init(epd.lut_full_update)
-#   image = Image.new('1', (epd7in5.EPD_WIDTH, epd7in5.EPD_HEIGHT), 255)
-#   ...
-#   drawing ......
-#   ...
-#   epd.display(getbuffer(image))
 # ******************************************************************************//
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documnetation files (the "Software"), to deal
