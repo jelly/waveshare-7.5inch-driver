@@ -99,9 +99,6 @@ class EPD:
         SPI.mode = 0b00
         return 0
 
-    def digital_write(self, pin, value):
-        GPIO.output(pin, value)
-
     def delay_ms(self, delaytime):
         time.sleep(delaytime / 1000.0)
 
