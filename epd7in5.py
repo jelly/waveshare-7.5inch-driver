@@ -107,19 +107,19 @@ class EPD:
 
     # Hardware reset
     def reset(self):
-        self.digital_write(self.reset_pin, GPIO.HIGH)
+        GPIO.output(self.reset_pin, GPIO.HIGH)
         self.delay_ms(200)
-        self.digital_write(self.reset_pin, GPIO.LOW)         # module reset
+        GPIO.output(self.reset_pin, GPIO.LOW)         # module reset
         self.delay_ms(200)
-        self.digital_write(self.reset_pin, GPIO.HIGH)
+        GPIO.output(self.reset_pin, GPIO.HIGH)
         self.delay_ms(200)
 
     def send_command(self, command):
-        self.digital_write(self.dc_pin, GPIO.LOW)
+        GPIO.output(self.dc_pin, GPIO.LOW)
         SPI.writebytes([command])
 
     def send_data(self, data):
-        self.digital_write(self.dc_pin, GPIO.HIGH)
+        GPIO.output(self.dc_pin, GPIO.HIGH)
         SPI.writebytes([data])
 
     def wait_until_idle(self):
@@ -188,7 +188,7 @@ class EPD:
 
     def display(self, data):
         self.send_command(DATA_START_TRANSMISSION_1)
-        self.digital_write(self.dc_pin, GPIO.HIGH)
+        GPIO.output(self.dc_pin, GPIO.HIGH)
 
         SPI.writebytes2(data)
         self.send_command(DISPLAY_REFRESH)
@@ -197,7 +197,7 @@ class EPD:
 
     def clear(self):
         self.send_command(DATA_START_TRANSMISSION_1)
-        self.digital_write(self.dc_pin, GPIO.HIGH)
+        GPIO.output(self.dc_pin, GPIO.HIGH)
         data = [0x33 for _ in range(0, self.width // 2 * self.height)]
         SPI.writebytes2(data)
         self.send_command(DISPLAY_REFRESH)
