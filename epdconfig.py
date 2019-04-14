@@ -33,10 +33,10 @@
 # THE SOFTWARE.
 #
 
+import time
 
 import spidev
 import RPi.GPIO as GPIO
-import time
 
 # Pin definition
 RST_PIN         = 17
