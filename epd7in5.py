@@ -25,55 +25,55 @@ import spidev
 
 
 # Pin definition
-RST_PIN         = 17
-DC_PIN          = 25
-CS_PIN          = 8
-BUSY_PIN        = 24
+RST_PIN = 17
+DC_PIN = 25
+CS_PIN = 8
+BUSY_PIN = 24
 
 
 # Display resolution
-EPD_WIDTH       = 640
-EPD_HEIGHT      = 384
+EPD_WIDTH = 640
+EPD_HEIGHT = 384
 
 
 # EPD7IN5 commands
-PANEL_SETTING                               = 0x00
-POWER_SETTING                               = 0x01
-POWER_OFF                                   = 0x02
-POWER_OFF_SEQUENCE_SETTING                  = 0x03
-POWER_ON                                    = 0x04
-POWER_ON_MEASURE                            = 0x05
-BOOSTER_SOFT_START                          = 0x06
-DEEP_SLEEP                                  = 0x07
-DATA_START_TRANSMISSION_1                   = 0x10
-DATA_STOP                                   = 0x11
-DISPLAY_REFRESH                             = 0x12
-IMAGE_PROCESS                               = 0x13
-LUT_FOR_VCOM                                = 0x20
-LUT_BLUE                                    = 0x21
-LUT_WHITE                                   = 0x22
-LUT_GRAY_1                                  = 0x23
-LUT_GRAY_2                                  = 0x24
-LUT_RED_0                                   = 0x25
-LUT_RED_1                                   = 0x26
-LUT_RED_2                                   = 0x27
-LUT_RED_3                                   = 0x28
-LUT_XON                                     = 0x29
-PLL_CONTROL                                 = 0x30
-TEMPERATURE_SENSOR_COMMAND                  = 0x40
-TEMPERATURE_CALIBRATION                     = 0x41
-TEMPERATURE_SENSOR_WRITE                    = 0x42
-TEMPERATURE_SENSOR_READ                     = 0x43
-VCOM_AND_DATA_INTERVAL_SETTING              = 0x50
-LOW_POWER_DETECTION                         = 0x51
-TCON_SETTING                                = 0x60
-TCON_RESOLUTION                             = 0x61
-SPI_FLASH_CONTROL                           = 0x65
-REVISION                                    = 0x70
-GET_STATUS                                  = 0x71
-AUTO_MEASUREMENT_VCOM                       = 0x80
-READ_VCOM_VALUE                             = 0x81
-VCM_DC_SETTING                              = 0x82
+PANEL_SETTING = 0x00
+POWER_SETTING = 0x01
+POWER_OFF = 0x02
+POWER_OFF_SEQUENCE_SETTING = 0x03
+POWER_ON = 0x04
+POWER_ON_MEASURE = 0x05
+BOOSTER_SOFT_START = 0x06
+DEEP_SLEEP = 0x07
+DATA_START_TRANSMISSION_1 = 0x10
+DATA_STOP = 0x11
+DISPLAY_REFRESH = 0x12
+IMAGE_PROCESS = 0x13
+LUT_FOR_VCOM = 0x20
+LUT_BLUE = 0x21
+LUT_WHITE = 0x22
+LUT_GRAY_1 = 0x23
+LUT_GRAY_2 = 0x24
+LUT_RED_0 = 0x25
+LUT_RED_1 = 0x26
+LUT_RED_2 = 0x27
+LUT_RED_3 = 0x28
+LUT_XON = 0x29
+PLL_CONTROL = 0x30
+TEMPERATURE_SENSOR_COMMAND = 0x40
+TEMPERATURE_CALIBRATION = 0x41
+TEMPERATURE_SENSOR_WRITE = 0x42
+TEMPERATURE_SENSOR_READ = 0x43
+VCOM_AND_DATA_INTERVAL_SETTING = 0x50
+LOW_POWER_DETECTION = 0x51
+TCON_SETTING = 0x60
+TCON_RESOLUTION = 0x61
+SPI_FLASH_CONTROL = 0x65
+REVISION = 0x70
+GET_STATUS = 0x71
+AUTO_MEASUREMENT_VCOM = 0x80
+READ_VCOM_VALUE = 0x81
+VCM_DC_SETTING = 0x82
 
 
 # SPI device, bus = 0, device = 0
@@ -150,13 +150,13 @@ class EPD:
         self.send_command(TCON_SETTING)
         self.send_data(0x22)
         self.send_command(TCON_RESOLUTION)
-        self.send_data(EPD_WIDTH >> 8)     #source 640
+        self.send_data(EPD_WIDTH >> 8)  # source 640
         self.send_data(EPD_WIDTH & 0xff)
-        self.send_data(EPD_HEIGHT >> 8)     #gate 384
+        self.send_data(EPD_HEIGHT >> 8)  # gate 384
         self.send_data(EPD_HEIGHT & 0xff)
         self.send_command(VCM_DC_SETTING)
-        self.send_data(0x1E)      #decide by LUT file
-        self.send_command(0xe5)           #FLASH MODE
+        self.send_data(0x1E)  # decide by LUT file
+        self.send_command(0xe5)  # FLASH MODE
         self.send_data(0x03)
 
         # EPD hardware init end
@@ -172,15 +172,15 @@ class EPD:
             for y in range(imheight):
                 for x in range(0, imwidth, 2):
                     # Set the bits for the column of pixels at the current position
-                    if pixels[x, y] < 64: # black
+                    if pixels[x, y] < 64:  # black
                         temp1 = 0x00
-                    else: # white
+                    else:  # white
                         temp1 = 0x30
-                    if pixels[x+1, y] < 64: # black
+                    if pixels[x+1, y] < 64:  # black
                         temp2 = 0x00
-                    else: # white
+                    else:  # white
                         temp2 = 0x30
-                    buf[x//2 + y * self.width//2] = temp1 | (temp2>>4)
+                    buf[x//2 + y * self.width//2] = temp1 | (temp2 >> 4)
         return buf
 
     def display(self, data):
@@ -205,3 +205,28 @@ class EPD:
         self.wait_until_idle()
         self.send_command(DEEP_SLEEP)
         self.send_data(0XA5)
+
+
+class Display:
+    def __init__(self, rotate=None, spi_hz=None, vcom=None):
+        self.width = EPD_WIDTH
+        self.height = EPD_HEIGHT
+        # Himage = Image.new('1', (epd7in5.EPD_WIDTH, epd7in5.EPD_HEIGHT), 255)  # 255: clear the frame
+        if rotate in ('CW', 'CCW'):
+            self.frame_buf = Image.new('L', (self.height, self.width), 0xFF)
+        else:
+            self.frame_buf = Image.new('L', (self.width, self.height), 0xFF)
+
+        epd = EPD()
+        epd.init()
+        self.epd = epd
+
+    def clear(self):
+        self.epd.clear()
+
+    def draw_full(self, lut):
+        buf = self.epd.getbuffer(self.frame_buf)
+        self.epd.clear()
+        self.epd.display(buf)
+        time.sleep(2)
+        self.epd.sleep()
